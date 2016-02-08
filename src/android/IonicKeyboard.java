@@ -10,8 +10,11 @@ import org.json.JSONArray;
 import org.json.JSONException;
 
 import android.content.Context;
+import android.graphics.Point;
 import android.graphics.Rect;
+import android.os.Build;
 import android.util.DisplayMetrics;
+import android.view.Display;
 import android.view.View;
 import android.view.ViewTreeObserver.OnGlobalLayoutListener;
 import android.view.inputmethod.InputMethodManager;
@@ -67,10 +70,20 @@ public class IonicKeyboard extends CordovaPlugin {
                             Rect r = new Rect();
                             //r will be populated with the coordinates of your view that area still visible.
                             rootView.getWindowVisibleDisplayFrame(r);
-                            
-                            PluginResult result;
 
-                            int heightDiff = rootView.getRootView().getHeight() - r.bottom;
+                            PluginResult result;
+                            int screenHeight = 0;
+
+                            if (Build.VERSION.SDK_INT >= 21) {
+                                Display display = cordova.getActivity().getWindowManager().getDefaultDisplay();
+                                Point size = new Point();
+                                display.getSize(size);
+                                screenHeight = size.y;
+                            } else {
+                                screenHeight = rootView.getRootView().getHeight();
+                            }
+
+                            int heightDiff = screenHeight - r.bottom;
                             int pixelHeightDiff = (int)(heightDiff / density);
                             if (pixelHeightDiff > 100 && pixelHeightDiff != previousHeightDiff) { // if more than 100 pixels, its probably a keyboard...
                             	String msg = "S" + Integer.toString(pixelHeightDiff);
@@ -89,8 +102,8 @@ public class IonicKeyboard extends CordovaPlugin {
                     };
 
                     rootView.getViewTreeObserver().addOnGlobalLayoutListener(list);
-                	
-                	
+
+
                     PluginResult dataResult = new PluginResult(PluginResult.Status.OK);
                     dataResult.setKeepCallback(true);
                     callbackContext.sendPluginResult(dataResult);
@@ -103,5 +116,3 @@ public class IonicKeyboard extends CordovaPlugin {
 
 
 }
-
-
